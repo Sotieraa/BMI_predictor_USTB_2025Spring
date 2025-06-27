@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMI Predictor</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f7f6;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input[type="file"] {
+            margin: 20px 0;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+            height: 30px;
+        }
+
+        #spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>上传一张面部照片以预测身体质量指数BMI</h1>
+        <input type="file" id="imageInput" accept="image/*">
+        <button onclick="predictBMI()">Predict BMI</button>
+        <div id="spinner"></div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function predictBMI() {
+            const fileInput = document.getElementById('imageInput');
+            const resultDiv = document.getElementById('result');
+            const spinner = document.getElementById('spinner');
+
+            if (fileInput.files.length === 0) {
+                resultDiv.innerHTML = '<span class="error">Please select a file.</span>';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            resultDiv.innerHTML = '';
+            spinner.style.display = 'block';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.bmi) {
+                    resultDiv.innerHTML = `BMI: <span style="color: #007bff;">${data.bmi}</span>`;
+                } else if (data.error) {
+                    resultDiv.innerHTML = `<span class="error">${data.error}</span>`;
+                }
+
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">A request error occurred: ${error}</span>`;
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+
+</html>
